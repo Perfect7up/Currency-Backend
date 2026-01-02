@@ -42,7 +42,7 @@ public class CoinGeckoService : ICoinService
             Id = x.id,
             Symbol = x.symbol.ToUpper(),
             Name = x.name,
-            LogoUrl = x.image.large,
+            Image = x.image.large,
             CurrentPrice = x.market_data.current_price.usd,
             MarketCapRank = (int)x.market_data.market_cap_rank,
             MarketCap = (long)x.market_data.market_cap.usd,
@@ -60,7 +60,7 @@ public class CoinGeckoService : ICoinService
             Id = x.id,
             Symbol = x.symbol.ToUpper(),
             Name = x.name,
-            LogoUrl = x.thumb,
+            Image = x.thumb,
             MarketCapRank = x.market_cap_rank ?? 0
         }).ToList() ?? new List<Coin>();
     }
@@ -75,7 +75,7 @@ public class CoinGeckoService : ICoinService
             Id = x.item.id,
             Symbol = x.item.symbol.ToUpper(),
             Name = x.item.name,
-            LogoUrl = x.item.small,
+            Image = x.item.small,
             MarketCapRank = x.item.market_cap_rank
         }).ToList() ?? new List<Coin>();
     }
@@ -103,7 +103,7 @@ public class CoinGeckoService : ICoinService
             Id = x.id,
             Symbol = x.symbol.ToUpper(),
             Name = x.name,
-            LogoUrl = x.image,
+            Image = x.image,
             CurrentPrice = x.current_price,
             MarketCap = (long)x.market_cap,
             MarketCapRank = x.market_cap_rank,

@@ -8,8 +8,9 @@ public class Coin
     public string Id { get; set; } = string.Empty;
     public string Symbol { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
-    public string LogoUrl { get; set; } = string.Empty;
+    public string Image { get; set; } = string.Empty;
     public decimal CurrentPrice { get; set; }
+    public double PriceChangePercentage24h { get; set; }
     public long MarketCap { get; set; }
     public int MarketCapRank { get; set; }
     public DateTime LastUpdated { get; set; }
@@ -54,3 +55,8 @@ public record DescriptionDto(string en);
 public record ImageDto(string large);
 public record MarketDataDto(CurrentPriceDto current_price, double market_cap_rank, long market_cap_change_24h);
 public record CurrentPriceDto(decimal usd);
+
+public record MarketCoinDto(string id, string symbol, string name, string image, decimal current_price, int market_cap_rank, double price_change_percentage_24h);
+public record MarketTrendingDto(List<MarketTrendingItemWrapper> coins);
+public record MarketTrendingItemWrapper(MarketTrendingCoinItem item);
+public record MarketTrendingCoinItem(string id, string name, string symbol, string small, int market_cap_rank);

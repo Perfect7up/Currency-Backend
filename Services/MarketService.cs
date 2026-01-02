@@ -23,18 +23,18 @@ public class MarketService : IMarketService
 
     public async Task<MarketOverview> GetMarketOverviewAsync()
     {
-        // 1. Get Global Market Data
         var globalUrl = "https://api.coingecko.com/api/v3/global";
         var globalRes = await _httpClient.GetFromJsonAsync<GlobalResponse>(globalUrl);
 
-        // 2. Get Specific BTC and ETH Prices
         var priceUrl = "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd";
         var priceRes = await _httpClient.GetFromJsonAsync<Dictionary<string, Dictionary<string, decimal>>>(priceUrl);
 
         return new MarketOverview
         {
             TotalMarketCap = globalRes?.data.total_market_cap["usd"] ?? 0,
+            MarketCapChange = globalRes?.data.market_cap_change_percentage_24h_usd ?? 0,
             TotalVolume = globalRes?.data.total_volume["usd"] ?? 0,
+            VolumeChange = 0,
             BtcDominance = globalRes?.data.market_cap_percentage["btc"] ?? 0,
             BtcPrice = priceRes?["bitcoin"]["usd"] ?? 0,
             EthPrice = priceRes?["ethereum"]["usd"] ?? 0,
@@ -44,13 +44,13 @@ public class MarketService : IMarketService
 
     public async Task<List<Coin>> GetTopGainersAsync(int limit)
     {
-        var url = $"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_desc&per_page={limit}&page=1&sparkline=false";
+        var url = $"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_desc&per_page={limit}&page=1";
         return await FetchAndMapCoins(url);
     }
 
     public async Task<List<Coin>> GetTopLosersAsync(int limit)
     {
-        var url = $"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_asc&per_page={limit}&page=1&sparkline=false";
+        var url = $"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_asc&per_page={limit}&page=1";
         return await FetchAndMapCoins(url);
     }
 
@@ -64,8 +64,12 @@ public class MarketService : IMarketService
             Id = x.item.id,
             Symbol = x.item.symbol.ToUpper(),
             Name = x.item.name,
-            LogoUrl = x.item.small,
-            MarketCapRank = x.item.market_cap_rank
+            Image = x.item.small,
+            MarketCapRank = x.item.market_cap_rank,
+            // Logic to extract price and percentage from nested Trending data
+            CurrentPrice = x.item.data?.price ?? 0,
+            PriceChangePercentage24h = x.item.data?.price_change_percentage_24h?.GetValueOrDefault("usd") ?? 0,
+            LastUpdated = DateTime.UtcNow
         }).ToList() ?? new List<Coin>();
     }
 
@@ -77,22 +81,45 @@ public class MarketService : IMarketService
             Id = x.id,
             Symbol = x.symbol.ToUpper(),
             Name = x.name,
-            LogoUrl = x.image,
+            Image = x.image,
             CurrentPrice = x.current_price,
+            PriceChangePercentage24h = x.price_change_percentage_24h,
             MarketCapRank = x.market_cap_rank,
             LastUpdated = DateTime.UtcNow
         }).ToList() ?? new List<Coin>();
     }
 }
 
-// --- DTOs specifically for Market Service ---
 public record GlobalResponse(GlobalData data);
 public record GlobalData(
     Dictionary<string, decimal> total_market_cap,
     Dictionary<string, decimal> total_volume,
-    Dictionary<string, double> market_cap_percentage
+    Dictionary<string, double> market_cap_percentage,
+    double market_cap_change_percentage_24h_usd
 );
-public record MarketCoinDto(string id, string symbol, string name, string image, decimal current_price, int market_cap_rank);
+
+public record MarketCoinDto(
+    string id,
+    string symbol,
+    string name,
+    string image,
+    decimal current_price,
+    int market_cap_rank,
+    double price_change_percentage_24h
+);
+
 public record MarketTrendingDto(List<MarketTrendingItemWrapper> coins);
 public record MarketTrendingItemWrapper(MarketTrendingCoinItem item);
-public record MarketTrendingCoinItem(string id, string name, string symbol, string small, int market_cap_rank);
+public record MarketTrendingCoinItem(
+    string id,
+    string name,
+    string symbol,
+    string small,
+    int market_cap_rank,
+    TrendingData data
+);
+
+public record TrendingData(
+    decimal price,
+    Dictionary<string, double> price_change_percentage_24h
+);
