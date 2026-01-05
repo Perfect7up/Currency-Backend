@@ -47,4 +47,31 @@ public class CoinsController : ControllerBase
         var data = await _coinService.GetPriceHistoryAsync(id, days);
         return Ok(data);
     }
+
+
+    [HttpGet("{id}/details")]
+    [ProducesResponseType(typeof(Coin), 200)]
+    public async Task<IActionResult> GetDetails(string id)
+    {
+        var data = await _coinService.GetCoinDetailsAsync(id);
+        if (data == null) return NotFound();
+        return Ok(data);
+    }
+
+    [HttpGet("{id}/price-history")]
+    [ProducesResponseType(typeof(List<PriceHistory>), 200)]
+    public async Task<IActionResult> GetPriceHistoryByPeriod(string id, [FromQuery] string period = "7d")
+    {
+        var data = await _coinService.GetPriceHistoryByPeriodAsync(id, period);
+        return Ok(data);
+    }
+
+    [HttpGet("{id}/market-stats")]
+    [ProducesResponseType(typeof(MarketStats), 200)]
+    public async Task<IActionResult> GetMarketStats(string id)
+    {
+        var data = await _coinService.GetMarketStatsAsync(id);
+        if (data == null) return NotFound();
+        return Ok(data);
+    }
 }

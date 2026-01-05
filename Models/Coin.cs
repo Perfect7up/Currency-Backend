@@ -13,6 +13,7 @@ public class Coin
     public double PriceChangePercentage24h { get; set; }
     public long MarketCap { get; set; }
     public int MarketCapRank { get; set; }
+    public string? Description { get; set; }
     public DateTime LastUpdated { get; set; }
 }
 
@@ -33,10 +34,19 @@ public class News
 
 public class MarketStats
 {
-    public int Id { get; set; }
+    [Key]
     public string CoinId { get; set; } = string.Empty;
+    public decimal CurrentPrice { get; set; }
+    public long MarketCap { get; set; }
+    public int MarketCapRank { get; set; }
+    public decimal TotalVolume { get; set; }
+    public decimal High24h { get; set; }
+    public decimal Low24h { get; set; }
+    public double CirculatingSupply { get; set; }
+    public double TotalSupply { get; set; }
+    public double? MaxSupply { get; set; }
+    public double PriceChangePercentage24h { get; set; }
 }
-
 
 public record CoinGeckoSearchDto(List<CoinGeckoSearchItemDto> coins);
 public record CoinGeckoSearchItemDto(string id, string name, string symbol, string thumb, int? market_cap_rank);
@@ -53,7 +63,18 @@ public record CoinDetailDto(
 );
 public record DescriptionDto(string en);
 public record ImageDto(string large);
-public record MarketDataDto(CurrentPriceDto current_price, double market_cap_rank, long market_cap_change_24h);
+public record MarketDataDto(
+    CurrentPriceDto current_price,
+    int market_cap_rank,
+    long market_cap,
+    decimal total_volume,
+    decimal high_24h,
+    decimal low_24h,
+    double circulating_supply,
+    double total_supply,
+    double? max_supply,
+    double price_change_percentage_24h
+);
 public record CurrentPriceDto(decimal usd);
 
 public record MarketCoinDto(string id, string symbol, string name, string image, decimal current_price, int market_cap_rank, double price_change_percentage_24h);
