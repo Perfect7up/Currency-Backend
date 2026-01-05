@@ -1,7 +1,6 @@
-﻿using Backend.Services;
+﻿using Backend.Models;
+using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
-
-namespace Backend.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -15,6 +14,7 @@ public class MarketController : ControllerBase
     }
 
     [HttpGet("overview")]
+    [ProducesResponseType(typeof(MarketOverview), 200)]
     public async Task<IActionResult> GetOverview()
     {
         var data = await _marketService.GetMarketOverviewAsync();
@@ -22,6 +22,7 @@ public class MarketController : ControllerBase
     }
 
     [HttpGet("top-gainers")]
+    [ProducesResponseType(typeof(List<Coin>), 200)]
     public async Task<IActionResult> GetTopGainers([FromQuery] int limit = 5)
     {
         var data = await _marketService.GetTopGainersAsync(limit);
@@ -29,6 +30,7 @@ public class MarketController : ControllerBase
     }
 
     [HttpGet("top-losers")]
+    [ProducesResponseType(typeof(List<Coin>), 200)]
     public async Task<IActionResult> GetTopLosers([FromQuery] int limit = 5)
     {
         var data = await _marketService.GetTopLosersAsync(limit);
@@ -36,6 +38,7 @@ public class MarketController : ControllerBase
     }
 
     [HttpGet("trending")]
+    [ProducesResponseType(typeof(List<Coin>), 200)]
     public async Task<IActionResult> GetTrending([FromQuery] int limit = 10)
     {
         var data = await _marketService.GetTrendingAsync(limit);

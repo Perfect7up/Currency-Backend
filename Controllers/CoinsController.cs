@@ -1,4 +1,5 @@
-﻿using Backend.Services;
+﻿using Backend.Models;
+using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
@@ -15,6 +16,7 @@ public class CoinsController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(List<Coin>), 200)]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int perPage = 10)
     {
         var data = await _coinService.GetCoinsAsync(page, perPage);
@@ -22,6 +24,7 @@ public class CoinsController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Coin), 200)]
     public async Task<IActionResult> GetById(string id)
     {
         var data = await _coinService.GetCoinByIdAsync(id);
@@ -29,29 +32,16 @@ public class CoinsController : ControllerBase
         return Ok(data);
     }
 
-    [HttpGet("search")]
-    public async Task<IActionResult> Search([FromQuery] string query)
-    {
-        if (string.IsNullOrWhiteSpace(query)) return BadRequest("Query is required");
-        var data = await _coinService.SearchCoinsAsync(query);
-        return Ok(data);
-    }
-
     [HttpGet("trending")]
+    [ProducesResponseType(typeof(List<Coin>), 200)]
     public async Task<IActionResult> GetTrending()
     {
         var data = await _coinService.GetTrendingCoinsAsync();
         return Ok(data);
     }
 
-    [HttpGet("live")]
-    public async Task<IActionResult> GetLive([FromQuery] int perPage = 10)
-    {
-        var data = await _coinService.GetLiveCoinsAsync(perPage);
-        return Ok(data);
-    }
-
     [HttpGet("history/{id}")]
+    [ProducesResponseType(typeof(List<PriceHistory>), 200)]
     public async Task<IActionResult> GetHistory(string id, [FromQuery] int days = 7)
     {
         var data = await _coinService.GetPriceHistoryAsync(id, days);

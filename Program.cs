@@ -9,12 +9,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddMemoryCache();
 var controllerTypes = Assembly.GetExecutingAssembly()
     .GetTypes()
     .Where(t => t.IsSubclassOf(typeof(ControllerBase)) &&
                 t.Name.EndsWith("Controller"))
     .Select(t => t.Name.Replace("Controller", "").ToLower())
     .ToList();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo
@@ -42,24 +45,28 @@ builder.Services.AddSwaggerGen(c =>
         var controllerName = apiDesc.ActionDescriptor.RouteValues["controller"]?.ToLower();
         return docName == controllerName;
     });
-
 });
 
 builder.Services.AddOpenApi();
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 builder.Services.AddHttpClient<ICoinService, CoinGeckoService>();
 builder.Services.AddHttpClient<IMarketService, MarketService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
 var app = builder.Build();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();

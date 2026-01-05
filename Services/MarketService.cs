@@ -31,26 +31,26 @@ public class MarketService : IMarketService
 
         return new MarketOverview
         {
-            TotalMarketCap = globalRes?.data.total_market_cap["usd"] ?? 0,
+            TotalMarketCap = globalRes?.data.total_market_cap.GetValueOrDefault("usd") ?? 0,
             MarketCapChange = globalRes?.data.market_cap_change_percentage_24h_usd ?? 0,
-            TotalVolume = globalRes?.data.total_volume["usd"] ?? 0,
+            TotalVolume = globalRes?.data.total_volume.GetValueOrDefault("usd") ?? 0,
             VolumeChange = 0,
-            BtcDominance = globalRes?.data.market_cap_percentage["btc"] ?? 0,
-            BtcPrice = priceRes?["bitcoin"]["usd"] ?? 0,
-            EthPrice = priceRes?["ethereum"]["usd"] ?? 0,
+            BtcDominance = globalRes?.data.market_cap_percentage.GetValueOrDefault("btc") ?? 0,
+            BtcPrice = priceRes?.GetValueOrDefault("bitcoin")?.GetValueOrDefault("usd") ?? 0,
+            EthPrice = priceRes?.GetValueOrDefault("ethereum")?.GetValueOrDefault("usd") ?? 0,
             Timestamp = DateTime.UtcNow
         };
     }
 
     public async Task<List<Coin>> GetTopGainersAsync(int limit)
     {
-        var url = $"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_desc&per_page={limit}&page=1";
+        var url = $"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_desc&per_page={limit}&page=1&price_change_percentage=24h";
         return await FetchAndMapCoins(url);
     }
 
     public async Task<List<Coin>> GetTopLosersAsync(int limit)
     {
-        var url = $"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_asc&per_page={limit}&page=1";
+        var url = $"https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=price_change_percentage_24h_asc&per_page={limit}&page=1&price_change_percentage=24h";
         return await FetchAndMapCoins(url);
     }
 
@@ -66,8 +66,7 @@ public class MarketService : IMarketService
             Name = x.item.name,
             Image = x.item.small,
             MarketCapRank = x.item.market_cap_rank,
-            // Logic to extract price and percentage from nested Trending data
-            CurrentPrice = x.item.data?.price ?? 0,
+            CurrentPrice = (decimal)(x.item.data?.price ?? 0),
             PriceChangePercentage24h = x.item.data?.price_change_percentage_24h?.GetValueOrDefault("usd") ?? 0,
             LastUpdated = DateTime.UtcNow
         }).ToList() ?? new List<Coin>();
@@ -91,6 +90,7 @@ public class MarketService : IMarketService
 }
 
 public record GlobalResponse(GlobalData data);
+
 public record GlobalData(
     Dictionary<string, decimal> total_market_cap,
     Dictionary<string, decimal> total_volume,
@@ -109,17 +109,19 @@ public record MarketCoinDto(
 );
 
 public record MarketTrendingDto(List<MarketTrendingItemWrapper> coins);
+
 public record MarketTrendingItemWrapper(MarketTrendingCoinItem item);
+
 public record MarketTrendingCoinItem(
     string id,
     string name,
     string symbol,
     string small,
     int market_cap_rank,
-    TrendingData data
+    TrendingData? data
 );
 
 public record TrendingData(
-    decimal price,
+    double price,
     Dictionary<string, double> price_change_percentage_24h
 );
