@@ -50,6 +50,7 @@ builder.Services.AddHttpClient<ICoinService, CoinGeckoService>();
 builder.Services.AddHttpClient<IMarketService, MarketService>();
 builder.Services.AddScoped<INewsService, NewsService>();
 builder.Services.AddHttpClient<IToolsService, ToolsService>();
+builder.Services.AddHttpClient<IChartService, ChartService>();
 
 builder.Services.AddCors(options =>
 {
