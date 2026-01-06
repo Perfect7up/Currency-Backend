@@ -10,26 +10,35 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddMemoryCache();
 
-var controllerTypes = Assembly.GetExecutingAssembly()
+var controllerNames = Assembly.GetExecutingAssembly()
     .GetTypes()
-    .Where(t => t.IsSubclassOf(typeof(ControllerBase)) &&
-                t.Name.EndsWith("Controller"))
+    .Where(t => t.IsSubclassOf(typeof(ControllerBase)) && t.Name.EndsWith("Controller"))
     .Select(t => t.Name.Replace("Controller", "").ToLower())
+    .Where(name => !string.IsNullOrEmpty(name))
     .ToList();
 
 builder.Services.AddOpenApi("v1");
-foreach (var controller in controllerTypes)
+
+foreach (var controller in controllerNames)
 {
     builder.Services.AddOpenApi(controller, options =>
     {
         options.AddDocumentTransformer((document, context, cancellationToken) =>
         {
-            document.Info.Title = $"{char.ToUpper(controller[0])}{controller.Substring(1)} API";
+            var displayName = char.ToUpper(controller[0]) + controller.Substring(1);
+
+            document.Info.Title = $"{displayName} API";
             document.Info.Description = $"Endpoints for {controller} management.";
             document.Info.Version = "v1";
-
             var pathsToRemove = document.Paths
-                .Where(p => !p.Key.Contains($"/api/{controller}", StringComparison.OrdinalIgnoreCase))
+                .Where(pathItem =>
+                    pathItem.Value?.Operations == null ||
+                    !pathItem.Value.Operations.Values.Any(operation =>
+                        operation.Tags?.Any(tag =>
+                            tag.Name?.Equals(controller, StringComparison.OrdinalIgnoreCase) ?? false
+                        ) ?? false
+                    )
+                )
                 .ToList();
 
             foreach (var path in pathsToRemove)
@@ -70,10 +79,10 @@ if (app.Environment.IsDevelopment())
     {
         options.SwaggerEndpoint("/openapi/v1.json", "Full API v1");
 
-        foreach (var controller in controllerTypes)
+        foreach (var controller in controllerNames)
         {
-            options.SwaggerEndpoint($"/openapi/{controller}.json",
-                $"{char.ToUpper(controller[0])}{controller.Substring(1)} API");
+            var displayName = char.ToUpper(controller[0]) + controller.Substring(1);
+            options.SwaggerEndpoint($"/openapi/{controller}.json", $"{displayName} API");
         }
 
         options.RoutePrefix = "swagger";
