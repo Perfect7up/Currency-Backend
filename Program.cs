@@ -49,6 +49,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddHttpClient<ICoinService, CoinGeckoService>();
 builder.Services.AddHttpClient<IMarketService, MarketService>();
 builder.Services.AddScoped<INewsService, NewsService>();
+builder.Services.AddHttpClient<IToolsService, ToolsService>();
 
 builder.Services.AddCors(options =>
 {
