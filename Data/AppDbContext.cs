@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     public DbSet<Coin> Coins { get; set; }
     public DbSet<PriceHistory> PriceHistories { get; set; }
     public DbSet<News> NewsItems { get; set; }
+    public DbSet<NewsArticle> NewsArticles { get; set; }
     public DbSet<MarketStats> MarketStatistics { get; set; }
     public DbSet<MarketOverview> MarketOverviews { get; set; }
 }

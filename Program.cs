@@ -2,15 +2,14 @@
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
 builder.Services.AddMemoryCache();
+
 var controllerTypes = Assembly.GetExecutingAssembly()
     .GetTypes()
     .Where(t => t.IsSubclassOf(typeof(ControllerBase)) &&
@@ -18,50 +17,44 @@ var controllerTypes = Assembly.GetExecutingAssembly()
     .Select(t => t.Name.Replace("Controller", "").ToLower())
     .ToList();
 
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddOpenApi("v1");
+foreach (var controller in controllerTypes)
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
+    builder.Services.AddOpenApi(controller, options =>
     {
-        Title = "Crypto Tracker API",
-        Version = "v1",
-        Description = "Complete API Documentation"
-    });
-
-    foreach (var controller in controllerTypes)
-    {
-        c.SwaggerDoc(controller, new OpenApiInfo
+        options.AddDocumentTransformer((document, context, cancellationToken) =>
         {
-            Title = $"{char.ToUpper(controller[0])}{controller.Substring(1)} API",
-            Version = "v1",
-            Description = $"{char.ToUpper(controller[0])}{controller.Substring(1)}-specific endpoints"
+            document.Info.Title = $"{char.ToUpper(controller[0])}{controller.Substring(1)} API";
+            document.Info.Description = $"Endpoints for {controller} management.";
+            document.Info.Version = "v1";
+
+            var pathsToRemove = document.Paths
+                .Where(p => !p.Key.Contains($"/api/{controller}", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            foreach (var path in pathsToRemove)
+            {
+                document.Paths.Remove(path.Key);
+            }
+
+            return Task.CompletedTask;
         });
-    }
-
-    c.DocInclusionPredicate((docName, apiDesc) =>
-    {
-        if (docName == "v1")
-            return true;
-
-        var controllerName = apiDesc.ActionDescriptor.RouteValues["controller"]?.ToLower();
-        return docName == controllerName;
     });
-});
-
-builder.Services.AddOpenApi();
+}
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
+
 builder.Services.AddHttpClient<ICoinService, CoinGeckoService>();
 builder.Services.AddHttpClient<IMarketService, MarketService>();
+builder.Services.AddScoped<INewsService, NewsService>();
 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact", policy =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
+        policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();
     });
 });
 
@@ -71,14 +64,13 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 
-    app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Full API v1");
+        options.SwaggerEndpoint("/openapi/v1.json", "Full API v1");
 
         foreach (var controller in controllerTypes)
         {
-            options.SwaggerEndpoint($"/swagger/{controller}/swagger.json",
+            options.SwaggerEndpoint($"/openapi/{controller}.json",
                 $"{char.ToUpper(controller[0])}{controller.Substring(1)} API");
         }
 
@@ -86,9 +78,6 @@ if (app.Environment.IsDevelopment())
         options.DocumentTitle = "Crypto Tracker API Documentation";
         options.DisplayRequestDuration();
         options.EnableTryItOutByDefault();
-        options.DefaultModelsExpandDepth(-1);
-        options.DisplayOperationId();
-        options.DefaultModelRendering(Swashbuckle.AspNetCore.SwaggerUI.ModelRendering.Model);
     });
 }
 

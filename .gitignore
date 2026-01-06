@@ -7,18 +7,16 @@
 *.userosscache
 *.sln.docstates
 
-# Rider / JetBrains
 .idea/
 
-# Node / Frontend
 node_modules/
 npm-debug.log*
 yarn-error.log*
 
-# Operating System
 Thumbs.db
 .DS_Store
 
-# Secrets and Environment
 appsettings.Development.json
 .env
+
+appsettings.json
