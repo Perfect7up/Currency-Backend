@@ -92,6 +92,11 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseHttpsRedirection();
 app.UseCors("AllowReact");
 app.UseAuthorization();

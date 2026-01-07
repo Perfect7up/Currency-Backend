@@ -114,7 +114,8 @@ public class CoinGeckoService : ICoinService
             staleCacheKey,
             _shortCache,
             async () => await _httpClient.GetFromJsonAsync<CoinDetailDto>($"https://api.coingecko.com/api/v3/coins/{id.ToLower()}?localization=false&tickers=false&market_data=true"),
-            x => {
+            x =>
+            {
                 if (x == null) return null;
                 var md = x.market_data;
                 return new MarketStats
@@ -191,7 +192,8 @@ public class CoinGeckoService : ICoinService
             cacheKey,
             staleCacheKey,
             _shortCache,
-            async () => {
+            async () =>
+            {
                 var trending = await _httpClient.GetFromJsonAsync<CoinGeckoTrendingDto>("https://api.coingecko.com/api/v3/search/trending");
                 if (trending == null || !trending.coins.Any()) return new List<CoinGeckoDto>();
 

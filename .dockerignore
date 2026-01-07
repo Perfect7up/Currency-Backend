@@ -1,0 +1,20 @@
+# build output
+bin/
+obj/
+
+# IDE
+.vs/
+.idea/
+
+# secrets & env
+.env
+appsettings.Development.json
+appsettings.json
+
+# git
+.git
+.gitignore
+
+# OS
+Thumbs.db
+.DS_Store
