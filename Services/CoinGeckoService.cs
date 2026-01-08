@@ -287,7 +287,6 @@ public class CoinGeckoService : ICoinService
     }
 }
 
-// --- DTO Records ---
 public record CoinGeckoDto(string id, string symbol, string name, string image, decimal current_price, double market_cap, int market_cap_rank, double price_change_percentage_24h);
 public record CoinHistoryDto(List<List<double>> prices);
 public record CoinGeckoSearchDto(List<CoinGeckoSearchItemDto> coins);
