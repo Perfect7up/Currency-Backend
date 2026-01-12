@@ -68,8 +68,10 @@ void ConfigureJwtSecurity(OpenApiDocument document)
     document.Security.Add(requirement);
 }
 
-builder.Services.AddOpenApi("v1", options => {
-    options.AddDocumentTransformer((document, context, cancellationToken) => {
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
         ConfigureJwtSecurity(document);
         return Task.CompletedTask;
     });
@@ -125,7 +127,8 @@ builder.Services.AddHttpClient<IChartService, ChartService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-builder.Services.AddCors(options => {
+builder.Services.AddCors(options =>
+{
     options.AddPolicy("AllowReact", policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
 
@@ -134,7 +137,8 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.UseSwaggerUI(options => {
+    app.UseSwaggerUI(options =>
+    {
         options.SwaggerEndpoint("/openapi/v1.json", "Full API v1");
         foreach (var name in controllerNames)
         {
