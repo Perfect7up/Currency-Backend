@@ -40,7 +40,7 @@ public class AuthService(AppDbContext context, IConfiguration config, IEmailServ
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
-        var verifyUrl = $"{config["FrontendUrl"]}/confirm-email?token={verifyToken}&email={user.Email}";
+        var verifyUrl = $"{config["FrontendUrl"]}/account/confirm-email?token={verifyToken}&email={user.Email}";
         await emailService.SendEmailAsync(user.Email, "Verify Your Account",
             $"<h1>Welcome!</h1><p>Please <a href='{verifyUrl}'>click here</a> to verify your email.</p>");
 
@@ -113,7 +113,7 @@ public class AuthService(AppDbContext context, IConfiguration config, IEmailServ
         user.ResetTokenExpires = DateTime.UtcNow.AddHours(1);
         await context.SaveChangesAsync();
 
-        var resetUrl = $"{config["FrontendUrl"]}/reset-password?token={resetToken}&email={user.Email}";
+        var resetUrl = $"{config["FrontendUrl"]}/account/reset-password?token={resetToken}&email={user.Email}";
         await emailService.SendEmailAsync(user.Email, "Reset Your Password",
             $"<p>Click <a href='{resetUrl}'>here</a> to reset your password. Valid for 1 hour.</p>");
 
