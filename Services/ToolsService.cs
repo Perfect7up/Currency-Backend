@@ -62,34 +62,47 @@ public class ToolsService : IToolsService
 
     public async Task<List<Coin>> CompareCoinsAsync(string ids)
     {
-        string cacheKey = $"compare_{ids}";
+        // FIX 1: Sanitize IDs. CoinGecko fails if there are spaces like "bitcoin, ethereum"
+        var cleanIds = string.Join(",", ids.Split(',')
+            .Select(s => s.Trim().ToLower())
+            .Where(s => !string.IsNullOrWhiteSpace(s)));
+
+        if (string.IsNullOrEmpty(cleanIds)) return new List<Coin>();
+
+        string cacheKey = $"compare_{cleanIds}";
 
         if (!_cache.TryGetValue(cacheKey, out List<Coin>? coins))
         {
             try
             {
-                var url = $"coins/markets?vs_currency=usd&ids={ids.ToLower()}&order=market_cap_desc&sparkline=false";
-                var response = await _httpClient.GetFromJsonAsync<List<CoinGeckoDto>>(url);
+                // Use the sanitized cleanIds
+                var url = $"coins/markets?vs_currency=usd&ids={cleanIds}&order=market_cap_desc&sparkline=false";
 
-                coins = response?.Select(x => new Coin
+                // FIX 2: Use the specific Markets DTO
+                var response = await _httpClient.GetFromJsonAsync<List<CoinGeckoMarketsDto>>(url);
+
+                if (response == null) return new List<Coin>();
+
+                coins = response.Select(x => new Coin
                 {
                     Id = x.id,
-                    Symbol = x.symbol.ToUpper(),
-                    Name = x.name,
-                    Image = x.image,
-                    CurrentPrice = x.current_price,
-                    MarketCap = (long)x.market_cap,
-                    MarketCapRank = x.market_cap_rank,
-                    PriceChangePercentage24h = x.price_change_percentage_24h,
+                    Symbol = x.symbol?.ToUpper() ?? string.Empty,
+                    Name = x.name ?? string.Empty,
+                    Image = x.image ?? string.Empty,
+                    CurrentPrice = x.current_price ?? 0,
+                    // FIX 3: Safe casting for MarketCap
+                    MarketCap = x.market_cap ?? 0,
+                    MarketCapRank = x.market_cap_rank ?? 0,
+                    PriceChangePercentage24h = x.price_change_percentage_24h ?? 0,
                     LastUpdated = DateTime.UtcNow
-                }).ToList() ?? new List<Coin>();
+                }).ToList();
 
                 _cache.Set(cacheKey, coins, TimeSpan.FromMinutes(5));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error comparing coins for IDs: {Ids}", ids);
-                return new List<Coin>();
+                _logger.LogError(ex, "Error comparing coins for IDs: {Ids}", cleanIds);
+                return new List<Coin>(); // If it fails, it returns empty, causing your "zero" issue
             }
         }
         return coins ?? new List<Coin>();

@@ -17,6 +17,19 @@ public class Coin
     public DateTime LastUpdated { get; set; }
 }
 
+public class CoinGeckoMarketsDto
+{
+    public string id { get; set; } = string.Empty;
+    public string symbol { get; set; } = string.Empty;
+    public string name { get; set; } = string.Empty;
+    public string image { get; set; } = string.Empty;
+    public decimal? current_price { get; set; }
+    public long? market_cap { get; set; }
+    public int? market_cap_rank { get; set; }
+    public double? price_change_percentage_24h { get; set; }
+    public decimal? total_volume { get; set; }
+}
+
 public class PriceHistory
 {
     public int Id { get; set; }
